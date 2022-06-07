@@ -1,0 +1,70 @@
+---
+title: "Photo and Note Taking In Lectures Ex 1"
+output: html_document
+date: '2022-05-18'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(ggplot2)
+library(dplyr)
+library(lattice)
+library(rstatix)
+library(tidyverse)
+library(dplyr)
+library(DescTools)
+```
+
+```{r}
+datao <- read_excel("May 18 Final Data PN.xlsx")
+dataj <- read_excel("June 7 Data.xlsx")
+```
+
+```{r}
+
+data$Group <- as.factor(data$Group)
+
+
+gm1 <- aggregate(data$Score, list(data$Group), FUN=mean)
+gm2 <- aggregate(data$Score, list(data$Group), FUN=sd)
+
+gm1
+gm2
+```
+
+
+```{r}
+vis <- ggplot(data, aes(x = Group, y = Score))+
+  geom_boxplot()
+
+vis1 <- ggplot(data, labels = c("Contol","Photo","Note"), aes(x = Group, y = Score, colour = Group))+
+  geom_boxplot(aes(fill = Group))+
+  scale_color_manual(values = c("mediumturquoise", "whitesmoke", "paleturquoise"), labels = c("Contol","Notes","Photo/Notes"))+
+  scale_fill_manual(values = c("blue", "deeppink", "purple"), labels = c("Contol","Notes","Photo/Notes"))+
+  theme_dark()
+ 
+vis2 <- vis1 + labs(title = "Average Amount of Questions Answered Within Each Group")
+vis2
+```
+
+```{r}
+anv1 <- anova_test(data = data, dv = Score, wid = Participant, within = Group)
+anv1
+get_anova_table(anv1)
+
+
+
+```
+
+
+```{r}
+summary(cc<-aov(Score~as.factor(Group),data= data1))
+TukeyHSD(cc,"as.factor(Group)",data=data1)
+
+```
+```{r}
+res<-anova_test(data=data,dv=Score,wid=Participant,within=Group) 
+get_anova_table(res) 
+```
+
