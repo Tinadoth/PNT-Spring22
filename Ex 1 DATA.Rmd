@@ -17,17 +17,37 @@ library(DescTools)
 ```
 
 ```{r}
-datao <- read_excel("May 18 Final Data PN.xlsx")
-dataj <- read_excel("June 7 Data.xlsx")
+datao <- read_excel("May 18 Final Data PN.xlsx") #May Data
+
+dataj <- read_excel("June 7 Data.xlsx") # June Data
+SeptData <- read_excel("SeptData.xlsx") # Sept Data
+dataos <- data.frame(datao$Group,datao$Score,datao$Participant) # Needed Info from May data
+colnames(dataos) <- c("Group", "Score", "Participant")
+dlong <- dataj %>%
+  gather(key = "Group", value = "Score", Control, Photo, Note) # Needed Data from June Data
+dlong2 <- data.frame(dlong$Participant, dlong$Group,dlong$Score) # Change format of dlong
+colnames(dlong2) <- c("Participant", "Group","Score")
+dlongS <- SeptData %>%
+  gather(key = "Group", value = "Score", Control, Photo, Note) # Needed Data from June Data
+dlong2S <- data.frame(dlongS$Participant, dlongS$Group,dlongS$Score) # Change format of dlong
+colnames(dlong2S) <- c("Participant", "Group","Score")
+data1 <-  rbind(dataos,dlong2) # Combine may and june data sets
+data <- rbind(data1,dlong2S)
+data$Group <- as.factor(data$Group)
+data$Score <- as.numeric(data$Score)
+levels(data$Group) <- list("Photo & Note" = "Photo","Note" = "Note", "Control" = "COntrol")
+data1 <- data
+data1$Score <- data1$Score/15
 ```
 
 ```{r}
 
 data$Group <- as.factor(data$Group)
+data$Score <- as.numeric(data$Score) # Change for anova structure
 
 
-gm1 <- aggregate(data$Score, list(data$Group), FUN=mean)
-gm2 <- aggregate(data$Score, list(data$Group), FUN=sd)
+gm1 <- aggregate(data$Score, list(data$Group), FUN=mean) # Mean of each group
+gm2 <- aggregate(data$Score, list(data$Group), FUN=sd) # Standard D of each group
 
 gm1
 gm2
@@ -35,17 +55,19 @@ gm2
 
 
 ```{r}
-vis <- ggplot(data, aes(x = Group, y = Score))+
+vis <- ggplot(data1, aes(x = Group, y = Score))+
   geom_boxplot()
 
-vis1 <- ggplot(data, labels = c("Contol","Photo","Note"), aes(x = Group, y = Score, colour = Group))+
+vis1 <- ggplot(data1, aes(x = Group, y = Score, colour = Group))+
   geom_boxplot(aes(fill = Group))+
-  scale_color_manual(values = c("mediumturquoise", "whitesmoke", "paleturquoise"), labels = c("Contol","Notes","Photo/Notes"))+
-  scale_fill_manual(values = c("blue", "deeppink", "purple"), labels = c("Contol","Notes","Photo/Notes"))+
-  theme_dark()
+  scale_color_manual(values = c("black", "black", "black"))+
+  scale_fill_manual(values = c("blue", "maroon", "darkgoldenrod"))+
+  theme(text = element_text(size = 18), legend.position = "none")
  
-vis2 <- vis1 + labs(title = "Average Amount of Questions Answered Within Each Group")
+vis2 <- vis1 + labs(title = "Average Proportion of Questions Correct", x = "")
 vis2
+
+
 ```
 
 ```{r}
@@ -55,16 +77,9 @@ get_anova_table(anv1)
 
 
 
+
+
 ```
 
 
-```{r}
-summary(cc<-aov(Score~as.factor(Group),data= data1))
-TukeyHSD(cc,"as.factor(Group)",data=data1)
-
-```
-```{r}
-res<-anova_test(data=data,dv=Score,wid=Participant,within=Group) 
-get_anova_table(res) 
-```
 

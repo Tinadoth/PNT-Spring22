@@ -1,0 +1,133 @@
+---
+title: "Survey Data"
+author: "Maribeth McCook"
+date: "2022-11-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(tidyverse)
+library(rstatix)
+library(lsr)
+```
+
+```{r}
+
+NovS <- read_excel("Copy of Note Taking in Lectures_November 2, 2022_15.55.xlsx")
+
+ASpeaker<- NovS %>%
+  gather(key = "Speaker", value = "Score", Nspeaker, Pnspeaker, Cspeaker)
+
+ACalm<- NovS %>%
+  gather(key = "Calm", value = "Score", Ncalm, Pncalm, Ccalm) #Data cleaning
+
+ACalm$Calm <- as.factor(ACalm$Calm)
+
+levels(ACalm$Calm) <- list("Photo & Notes" = "Pncalm","Notes Only" = "Ncalm", "Control" = "Ccalm")
+
+VEffect<- NovS %>%
+  gather(key = "Effect", value = "Score", Neffective, Pneffective )
+
+VEffect$Effect <- as.factor(VEffect$Effect)
+
+
+levels(VEffect$Effect) <- list("Photo & Notes" = "Pneffective","Notes Only" = "Neffective")
+
+VEase<- NovS %>%
+  gather(key = "Ease", value = "Score", Nease, Pnease ) 
+  
+```
+
+```{r}
+mean(NovS$Nease)
+mean(NovS$Nspeaker)
+mean(NovS$Ncalm)
+mean(NovS$Neffective)
+mean(NovS$Pnease)
+mean(NovS$Pnspeaker)
+mean(NovS$Pncalm)
+mean(NovS$Pneffective)
+mean(NovS$Cspeaker)
+mean(NovS$Ccalm) #Means of all qs
+```
+
+```{r}
+NoteEffective <- t.test(NovS$Neffective,NovS$Pneffective,paired=TRUE) # Ttest note effectiveness, nonsig
+
+NoteEffective
+
+cohensD(NovS$Neffective, NovS$Pneffective)
+
+NoteEase <- t.test(NovS$Nease,NovS$Pnease,paired=TRUE) # Ttest note ease, nonsig
+
+NoteEase
+
+
+```
+
+
+```{r}
+Effect <- ggplot(VEffect, aes(x = Effect, y = Score, colour = Effect))+
+  geom_boxplot(aes(fill = Effect))+
+  scale_color_manual(values = c("black", "black", "black"))+
+  scale_fill_manual(values = c("blue", "maroon", "darkgoldenrod"))+
+  theme(text = element_text(size = 18), legend.position = "none")+
+  labs(title = "Rated Note Effectiveness By Group", x = "")
+
+Effect
+
+Ease <- ggplot(VEase, aes(x = Ease, y = Score, colour = Ease))+
+  geom_boxplot()
+
+Ease
+```
+
+
+```{r}
+anv1 <- anova_test(data = ASpeaker, dv = Score, wid = ID, within = Speaker) 
+
+#speaker quickness sig for Control Photo/Note bonferroni adjusted 
+
+anv1
+
+pwc <- ASpeaker %>%
+  pairwise_t_test(
+    Score ~ Speaker, paired = TRUE,
+    p.adjust.method = "bonferroni"
+    )
+pwc
+```
+
+```{r}
+anv2 <- anova_test(data = ACalm, dv = Score, wid = ID, within = Calm) 
+
+#student calmness sig for all pairs bonferroni adjusted
+
+anv2
+
+pwc <- ACalm %>%
+  pairwise_t_test(
+    Score ~ Calm, paired = TRUE,
+    p.adjust.method = "bonferroni"
+    )
+pwc
+```
+
+```{r}
+Speaker <- ggplot(ASpeaker, aes(x = Speaker, y = Score, colour = Speaker))+
+  geom_boxplot()
+
+Speaker
+
+Calm <- ggplot(ACalm, aes(x = Calm, y = Score, colour = Calm))+
+  geom_boxplot(aes(fill = Calm))+
+  scale_color_manual(values = c("black", "black", "black"))+
+  scale_fill_manual(values = c("blue", "maroon", "darkgoldenrod"))+
+  theme(text = element_text(size = 18), legend.position = "none")+
+  labs(title = "Calmness During Lecture By Group", x = "")
+
+Calm
+```
+
